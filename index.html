@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>츠또 추첨기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 'Inter' 폰트 사용 */
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8">
+
+    <div id="app" class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden">
+        <header class="bg-blue-600 p-6 sm:p-8">
+            <h1 class="text-3xl font-extrabold text-white text-center">
+                ✨ 츠또 추첨기
+            </h1>
+            <!-- 요청에 따라 태그라인 제거 -->
+        </header>
+
+        <main class="p-4 sm:p-8 space-y-8">
+            <!-- 안내 섹션 --><section class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <h2 class="text-xl font-semibold text-blue-800 mb-2 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    사용 방법 (필독)
+                </h2>
+                <!-- 요청에 따라 목록 내용 및 번호 수정 -->
+                <ol class="list-decimal list-inside text-gray-700 space-y-1 ml-4">
+                    <!-- 1번 항목: 츠또 게시물로 변경 -->
+                    <li>츠또 게시물의 **댓글 영역 전체**를 드래그하여 복사합니다.</li>
+                    <li>복사한 댓글 텍스트를 아래의 입력창에 **붙여넣기** 하세요.</li>
+                    <li>**당첨 번호 3개**를 각각의 입력창에 정확히 입력합니다.</li>
+                    <li>'당첨자 선정' 버튼을 누르면 즉시 결과가 표시됩니다.</li>
+                </ol>
+            </section>
+
+            <!-- 1. 댓글 입력 섹션 --><section class="space-y-4">
+                <!-- 레이블 변경: 1. 댓글 텍스트 붙여넣기 -> 1. 츠또 게시글 댓글 입력 -->
+                <label for="comment-input" class="block text-lg font-medium text-gray-700">1. 츠또 게시글 댓글 입력</label>
+                <!-- placeholder 텍스트도 츠또 게시글 댓글로 변경 -->
+                <textarea id="comment-input" rows="10" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm transition duration-150" placeholder="여기에 복사한 츠또 게시글 댓글 내용을 모두 붙여넣으세요."></textarea>
+            </section>
+
+            <!-- 2. 당첨 번호 입력 섹션 --><section class="space-y-4">
+                <!-- (댓글 내용과 완벽 일치해야 함) 문구 제거 -->
+                <label class="block text-lg font-medium text-gray-700">2. 당첨 번호 3개 입력</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- 사용자가 "1 2 3"과 같이 공백을 포함하여 입력해야 함 -->
+                    <input type="text" id="winning-number-1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-center font-bold text-xl" placeholder="번호 1 (예: 1 2 3)">
+                    <input type="text" id="winning-number-2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-center font-bold text-xl" placeholder="번호 2 (예: 4 5 6)">
+                    <input type="text" id="winning-number-3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-center font-bold text-xl" placeholder="번호 3 (예: 7 8 9)">
+                </div>
+                <p class="text-sm text-gray-500 mt-1">참가자가 '1 2 3'을 썼다면, 당첨 번호도 공백을 포함하여 '1 2 3'을 입력해야 합니다.</p>
+            </section>
+
+            <!-- 3. 설정 및 결과 섹션 --><div class="grid md:grid-cols-2 gap-6">
+                <!-- 좌측: 통계 및 버튼 --><section class="bg-gray-50 p-6 rounded-xl shadow-inner space-y-4 h-full flex flex-col">
+                    <h2 class="text-xl font-bold text-gray-800">3. 결과 확인</h2>
+
+                    <!-- 통계 --><div class="space-y-3 p-4 bg-white rounded-lg shadow border border-gray-200">
+                        <!-- 쌍 (닉네임 + 번호) 문구 제거 -->
+                        <p class="text-sm font-medium text-gray-600">총 유효 댓글: <span id="total-count" class="font-bold text-blue-600 text-lg">0</span>개</p>
+                        <!-- 당첨 조건 충족 참여자 수 -> 당첨자 수로 변경 -->
+                        <p class="text-sm font-medium text-gray-600">당첨자 수: <span id="unique-count" class="font-bold text-green-600 text-lg">0</span>명</p>
+                        <p class="text-sm text-red-500 mt-2 font-semibold">이 숫자가 최종 당첨자 수가 됩니다.</p>
+                    </div>
+
+                    <!-- 당첨자 선정 버튼 --><button id="draw-button" onclick="startDraw()" class="w-full mt-6 py-4 px-6 bg-green-500 text-white font-extrabold text-xl rounded-xl hover:bg-green-600 transition duration-200 shadow-lg shadow-green-200 disabled:bg-gray-400 disabled:shadow-none">
+                        🥇 당첨자 선정하기
+                    </button>
+                </section>
+
+                <!-- 우측: 결과 표시 --><section class="p-6 rounded-xl border border-gray-300 shadow-lg bg-white space-y-4">
+                    <h2 class="text-xl font-bold text-gray-800">4. 최종 당첨자 결과 (닉네임)</h2>
+
+                    <div id="results-display" class="min-h-[200px] border-2 border-dashed border-gray-200 rounded-lg p-4 flex items-center justify-center bg-white">
+                        <p id="initial-message" class="text-gray-500">당첨 조건을 충족하는 참여자가 여기에 표시됩니다.</p>
+                        <ul id="winner-list" class="space-y-2 w-full hidden">
+                            <!-- 당첨자 닉네임 리스트가 여기에 삽입됩니다 --></ul>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- 메시지 모달 (alert 대신 사용) --><div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center z-50">
+                <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full space-y-4 transform transition-all">
+                    <h3 id="modal-title" class="text-xl font-bold text-gray-800">알림</h3>
+                    <p id="modal-body" class="text-gray-600"></p>
+                    <button onclick="hideModal()" class="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150">확인</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const commentInput = document.getElementById('comment-input');
+        const winningNumberInputs = [
+            document.getElementById('winning-number-1'),
+            document.getElementById('winning-number-2'),
+            document.getElementById('winning-number-3')
+        ];
+        const totalCountSpan = document.getElementById('total-count');
+        const uniqueCountSpan = document.getElementById('unique-count');
+        const drawButton = document.getElementById('draw-button');
+        const resultsDisplay = document.getElementById('results-display');
+        const winnerList = document.getElementById('winner-list');
+        const initialMessage = document.getElementById('initial-message');
+        
+        // 최종 추첨 대상 참여자 목록 (번호 일치 & 중복 제거)
+        let eligibleParticipants = [];
+
+        /**
+         * 커스텀 모달 (alert() 대신 사용)
+         * @param {string} title 모달 제목
+         * @param {string} body 모달 내용
+         */
+        function showModal(title, body) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').textContent = body;
+            document.getElementById('message-modal').classList.remove('hidden');
+            document.getElementById('message-modal').classList.add('flex');
+        }
+
+        function hideModal() {
+            document.getElementById('message-modal').classList.remove('flex');
+            document.getElementById('message-modal').classList.add('hidden');
+        }
+
+        /**
+         * 입력된 댓글 텍스트를 파싱하여 당첨 번호와 일치하는 참여자 목록을 업데이트합니다.
+         * 닉네임 바로 밑에 번호가 오는 형식(닉네임\n1 2 3)에 최적화된 로직입니다.
+         * 닉네임과 번호 사이에 있는 작성 시간 등 불필요한 라인은 건너뛸 수 있도록 개선되었습니다.
+         */
+        function parseCommentsAndFilter() {
+            const text = commentInput.value.trim();
+            // 입력된 당첨 번호들을 가져옵니다. 빈 값은 제외합니다.
+            const winningNumbers = winningNumberInputs.map(input => input.value.trim()).filter(num => num !== '');
+
+            // 모든 줄을 가져온 후, 앞뒤 공백을 제거하고 빈 줄은 제거합니다.
+            const allLines = text.split('\n').map(line => line.trim()).filter(line => line !== '');
+            
+            const tempParticipants = []; // { author: '닉네임', content: '참가 번호' } 형태로 저장
+            let parsedCommentCount = 0; // 아이디와 내용을 추출한 유효한 쌍의 수
+
+            // 정규식: 숫자와 공백만 포함하며, 비어있지 않은 문자열 (예: "1 2 3", "123 456 789"). 
+            // 이 정규식에 일치해야 참가 번호로 간주합니다.
+            const numberSequencePattern = /^(\d+(\s+\d+)*)$/; 
+            // 닉네임 뒤에 붙는 ' -Month Subscriber' 패턴을 제거하기 위한 정규식. (Month는 임의의 단어/숫자)
+            const subscriberPattern = /\s*-\s*[\w\s]+Subscriber/i;
+            const MAX_LOOKBACK = 5; // 최대 5줄을 거슬러 올라가며 닉네임을 찾습니다.
+
+            // 닉네임과 참가 번호가 '윗줄(닉네임) -> 아랫줄(번호)' 순서로 오며 중간에 다른 라인이 있을 수 있다는 전제 하에 파싱합니다.
+            for (let i = 0; i < allLines.length; i++) {
+                const currentLine = allLines[i];
+                
+                // 1. 현재 줄이 참가 번호 형식인지 확인합니다.
+                if (numberSequencePattern.test(currentLine)) {
+                    
+                    let foundAuthor = null;
+                    
+                    // 2. 바로 윗줄부터 거슬러 올라가며 닉네임을 찾습니다 (최대 5줄).
+                    for (let j = 1; j <= MAX_LOOKBACK && i - j >= 0; j++) {
+                        const potentialAuthorLine = allLines[i - j];
+                        
+                        // 3. 잠재적 닉네임 라인이 비어있지 않고, 숫자 시퀀스도 아닌 경우 닉네임으로 확정합니다.
+                        // 이 로직은 "작성 시간", "답글" 등의 텍스트를 건너뛰고 닉네임을 찾도록 해줍니다.
+                        if (potentialAuthorLine && !numberSequencePattern.test(potentialAuthorLine)) {
+                            let cleanAuthor = potentialAuthorLine.replace(/[\[\]]/g, '').trim(); // 괄호 제거 후 공백 제거
+                            
+                            // 사용자 요청: '-Month Subscriber' 패턴 제거
+                            cleanAuthor = cleanAuthor.replace(subscriberPattern, '').trim();
+
+                            foundAuthor = cleanAuthor;
+                            break; // 닉네임을 찾았으므로 더 이상 거슬러 올라가지 않습니다.
+                        }
+                    }
+
+                    // 닉네임과 번호 쌍이 유효한 경우만 기록합니다.
+                    if (foundAuthor) {
+                        tempParticipants.push({ 
+                            author: foundAuthor, 
+                            content: currentLine 
+                        });
+                        parsedCommentCount++;
+                    }
+                } 
+            }
+
+            // 당첨 번호와 일치하는 댓글을 찾고, 해당 작성자를 eligibleParticipants에 추가
+            const matchedAuthors = new Set();
+            
+            tempParticipants.forEach(p => {
+                // 댓글 내용(참가 번호)이 사용자가 입력한 당첨 번호 중 하나와 완벽하게 일치하는지 확인
+                if (winningNumbers.some(num => p.content === num)) {
+                    // 닉네임(p.author)을 당첨자로 추가 (Set을 사용하여 중복 자동 제거)
+                    matchedAuthors.add(p.author);
+                }
+            });
+            
+            eligibleParticipants = Array.from(matchedAuthors);
+
+            totalCountSpan.textContent = parsedCommentCount; // 유효한 닉네임+번호 쌍의 수
+            uniqueCountSpan.textContent = eligibleParticipants.length; // 당첨 조건 충족 닉네임 수
+
+            checkValidation();
+        }
+
+        /**
+         * 버튼 활성화 및 유효성을 검사합니다.
+         */
+        function checkValidation() {
+            const hasWinningNumbers = winningNumberInputs.some(input => input.value.trim() !== '');
+            const hasComments = commentInput.value.trim() !== '';
+
+            // 댓글이 없거나, 당첨번호가 하나도 입력되지 않았으면 비활성화
+            if (!hasComments || !hasWinningNumbers) {
+                drawButton.disabled = true;
+                return;
+            }
+            
+            // 조건이 충족되면 버튼 활성화
+            drawButton.disabled = false;
+        }
+
+        /**
+         * 당첨자 선정 결과를 표시합니다.
+         */
+        function startDraw() {
+            // 다시 한번 필터링하여 최신 상태 반영
+            parseCommentsAndFilter(); 
+            
+            const winners = eligibleParticipants;
+
+            if (winners.length === 0) {
+                showModal('알림', '당첨 번호와 완벽히 일치하는 유효한 참가 댓글을 찾지 못했습니다. 붙여넣은 텍스트의 형식(닉네임\n번호)과 당첨 번호를 확인해 주세요.');
+                // 결과 영역 초기화
+                winnerList.classList.add('hidden');
+                initialMessage.classList.remove('hidden');
+                initialMessage.textContent = '당첨 조건을 충족하는 참여자가 여기에 표시됩니다.';
+                return;
+            }
+            
+            // 결과 표시 업데이트
+            displayWinners(winners);
+            showModal('🎉 당첨자 선정 완료', `총 ${winners.length}명의 당첨자가 선정되었습니다!`);
+        }
+
+        /**
+         * 선정된 당첨자 목록(닉네임)을 화면에 표시합니다.
+         * @param {string[]} winners 당첨자 닉네임 배열
+         */
+        function displayWinners(winners) {
+            winnerList.innerHTML = ''; // 기존 목록 초기화
+            winnerList.classList.remove('hidden');
+            initialMessage.classList.add('hidden');
+
+            winners.forEach((winner, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'flex items-center p-3 bg-white border border-green-300 rounded-lg shadow-md';
+                listItem.innerHTML = `
+                    <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-green-500 text-white font-bold text-sm mr-4">${index + 1}</span>
+                    <span class="text-lg font-semibold text-gray-800 break-all">${winner}</span>
+                `;
+                winnerList.appendChild(listItem);
+            });
+        }
+        
+        // --- 이벤트 리스너 설정 ---
+
+        // 입력창 내용 변경 시 파싱 함수 실행
+        commentInput.addEventListener('input', parseCommentsAndFilter);
+        winningNumberInputs.forEach(input => {
+            input.addEventListener('input', parseCommentsAndFilter);
+        });
+
+        // 초기 유효성 검사
+        checkValidation();
+        
+    </script>
+</body>
+</html>
